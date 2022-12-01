@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Weather App</string>
+    <string name="current_location">Ubicació actual</string>
+    <string name="Latitude">Latitud</string>
+    <string name="Longitude">Longitud</string>
+    <string name="refresh_button">Refrescar</string>
+    <string name="toast_refreshing">Refrescant...</string>
+</resources>
