@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                                             try {
                                                 str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin4") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
                                             } catch (JSONException e4) {
-                                                str = "";
+                                                str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
                                             }
                                         }
                                     }
