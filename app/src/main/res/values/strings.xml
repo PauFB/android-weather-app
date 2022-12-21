@@ -34,7 +34,7 @@
     <string name="weathercode95">Slight/moderate thunderstorm</string>
     <string name="weathercode96">Slight tail thunderstorm</string>
     <string name="weathercode99">Heavy tail thunderstorm</string>
-    <string name="searchCity">Search city</string>
+    <string name="searchCity">Search location</string>
     <string name="search_button">Search</string>
     <string name="typeToSearch">Type to search...</string>
     <string name="selectAResult">Select a result</string>

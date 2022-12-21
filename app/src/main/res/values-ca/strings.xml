@@ -34,7 +34,7 @@
     <string name="weathercode95">Tempesta lleugera/moderada</string>
     <string name="weathercode96">Tempesta de cua lleu</string>
     <string name="weathercode99">Tempesta de cua intensa</string>
-    <string name="searchCity">Cercar ciutat</string>
+    <string name="searchCity">Cercar ubicació</string>
     <string name="search_button">Cercar</string>
     <string name="typeToSearch">Escriu per cercar...</string>
     <string name="selectAResult">Selecciona un resultat</string>
