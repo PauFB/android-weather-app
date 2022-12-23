@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView longitudeTextView;
     private TextView temperatureTextView;
     private TextView skyTextView;
+
+    private ImageView skyImageView;
 
     private EditText searchedLocationEditText;
     private EditText searchedLocationTemperatureEditText;
@@ -66,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
         longitudeTextView = findViewById(R.id.longitude_TextView);
         temperatureTextView = findViewById(R.id.currentTemperature);
         skyTextView = findViewById(R.id.sky_TextView);
+
+        skyImageView = findViewById(R.id.sky_ImageView);
+        skyImageView.setImageResource(android.R.color.transparent);
 
         searchedLocationEditText = findViewById(R.id.searchedLocation_EditText);
         searchedLocationTemperatureEditText = findViewById(R.id.editTextSearchedLocationTemperature);
@@ -170,14 +176,23 @@ public class MainActivity extends AppCompatActivity {
 
     public void updateCurrentLocationWeatherInfo(String lat, String lon) {
         StringRequest request = new StringRequest(Request.Method.GET,
-                "https://api.open-meteo.com/v1/forecast" + "?latitude=" + lat +  "&longitude=" + lon + "&current_weather=true",
+                "https://api.open-meteo.com/v1/forecast?latitude=" + lat +  "&longitude=" + lon + "&current_weather=true",
                     response -> {
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             temperatureTextView.setText(String.valueOf(jsonObject.getJSONObject("current_weather").get("temperature")));
-                            int id = getResources().getIdentifier("weathercode" + String.valueOf(jsonObject.getJSONObject("current_weather").get("weathercode")), "string", getPackageName());
+                            int weathercode = (int) jsonObject.getJSONObject("current_weather").get("weathercode");
+                            int id = getResources().getIdentifier("weathercode" + String.valueOf(weathercode), "string", getPackageName());
                             String result = getString(id);
                             skyTextView.setText(result);
+                            if (0 <= weathercode && weathercode <= 2)
+                                skyImageView.setImageResource(R.drawable.sun_moon);
+                            if (3 <= weathercode && weathercode <= 48)
+                                skyImageView.setImageResource(R.drawable.cloud);
+                            if ((51 <= weathercode && weathercode <= 67) || (80 <= weathercode && weathercode <= 82) || (95 <= weathercode && weathercode <= 99))
+                                skyImageView.setImageResource(R.drawable.rain);
+                            if ((71 <= weathercode && weathercode <= 77) || (85 <= weathercode && weathercode <= 86))
+                                skyImageView.setImageResource(R.drawable.snow);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -221,14 +236,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 refreshButton.setEnabled(false);
-                Toast.makeText(getApplicationContext(), "No pots usar la app", Toast.LENGTH_SHORT).show();
             }
         } else if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
             } else {
                 refreshButton.setEnabled(false);
-                Toast.makeText(getApplicationContext(), "No pots usar la app", Toast.LENGTH_SHORT).show();
             }
         }
     }
