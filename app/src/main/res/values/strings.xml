@@ -40,5 +40,7 @@
     <string name="selectAResult">Select a result</string>
     <string name="selectButton">Select</string>
     <string name="cancelButton">Cancel</string>
-
+    <string name="internetUnavailable">Internet unavailable</string>
+    <string name="gpsUnavailable">GPS unavailable</string>
+    <string name="bluetoothUnavailable">Bluetooth is unavailable</string>
 </resources>

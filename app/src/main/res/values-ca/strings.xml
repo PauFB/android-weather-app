@@ -40,4 +40,7 @@
     <string name="selectAResult">Selecciona un resultat</string>
     <string name="selectButton">Seleccionar</string>
     <string name="cancelButton">Cancel·lar</string>
+    <string name="internetUnavailable">Internet no disponible</string>
+    <string name="gpsUnavailable">GPS no disponible</string>
+    <string name="bluetoothUnavailable">Bluetooth no disponible</string>
 </resources>

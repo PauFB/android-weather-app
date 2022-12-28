@@ -6,6 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/temperature_TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="137dp"
+        android:layout_marginEnd="137dp"
+        android:layout_marginBottom="16dp"
+        android:text="-"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/searchedLocation_EditText"
+        app:layout_constraintStart_toEndOf="@+id/textView2" />
+
     <EditText
         android:id="@+id/latitude_TextView"
         android:layout_width="0dp"
@@ -92,20 +105,18 @@
         android:layout_width="324dp"
         android:layout_height="52dp"
         android:layout_marginStart="43dp"
-        android:layout_marginEnd="43dp"
-        android:layout_marginBottom="59dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="44dp"
         android:ems="10"
         android:enabled="false"
         android:inputType="textPersonName"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_button" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextSearchedLocationTemperature" />
 
     <EditText
         android:id="@+id/editTextSearchedLocationTemperature"
-        android:layout_width="0dp"
+        android:layout_width="101dp"
         android:layout_height="53dp"
         android:layout_marginStart="43dp"
         android:layout_marginEnd="16dp"
@@ -120,13 +131,12 @@
         android:id="@+id/textView4"
         android:layout_width="47dp"
         android:layout_height="32dp"
-        android:layout_marginEnd="54dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="97dp"
         android:gravity="center"
         android:text="ºC"
         android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/searchedLocationSky_EditText"
-        app:layout_constraintEnd_toStartOf="@+id/search_button"
+        app:layout_constraintBottom_toTopOf="@+id/celsius_Label"
         app:layout_constraintStart_toEndOf="@+id/editTextSearchedLocationTemperature" />
 
     <TextView
@@ -176,7 +186,7 @@
         android:id="@+id/refresh_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="11dp"
         android:layout_marginBottom="22dp"
         android:text="@string/refresh_button"
         app:layout_constraintBottom_toTopOf="@+id/searchCity_textView"
@@ -234,17 +244,35 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/refresh_button" />
 
-    <ImageView
-        android:id="@+id/sky_ImageView"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_marginStart="3dp"
-        android:layout_marginTop="104dp"
-        android:layout_marginEnd="23dp"
-        android:layout_marginBottom="7dp"
-        app:layout_constraintBottom_toTopOf="@+id/sky_TextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/currentLocation_EditText"
-        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/lux_TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginBottom="16dp"
+        android:text="-"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/textView3"
+        app:layout_constraintStart_toStartOf="@+id/searchedLocationSky_EditText" />
+
+    <TextView
+        android:id="@+id/lux_Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Lux"
+        app:layout_constraintBottom_toTopOf="@+id/lux_TextView"
+        app:layout_constraintStart_toStartOf="@+id/lux_TextView" />
+
+    <TextView
+        android:id="@+id/celsius_Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Celsius"
+        app:layout_constraintBottom_toTopOf="@+id/temperature_TextView"
+        app:layout_constraintStart_toStartOf="@+id/temperature_TextView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
