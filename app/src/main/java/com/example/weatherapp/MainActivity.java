@@ -18,7 +18,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -37,18 +36,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MainActivity extends AppCompatActivity {
 
     private TextView currentLocationTextView;
-    private TextView latitudeTextView;
-    private TextView longitudeTextView;
-    private TextView temperatureTextView;
-    private TextView skyTextView;
-
-    private ImageView skyImageView;
+    private TextView currentTemperatureTextView;
+    private TextView currentSkyTextView;
+    private ImageView currentSkyImageView;
 
     private EditText searchedLocationEditText;
-    private EditText searchedLocationTemperatureEditText;
-    private EditText searchedLocationSkyEditText;
+    private TextView searchedTemperatureTextView;
+    private TextView searchedSkyTextView;
+    private ImageView searchedSkyImageView;
 
-    private Button refreshButton;
     private Button searchButton;
 
     private LocationManager locationManager;
@@ -64,20 +60,18 @@ public class MainActivity extends AppCompatActivity {
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        currentLocationTextView = findViewById(R.id.currentLocation_EditText);
-        latitudeTextView = findViewById(R.id.latitude_TextView);
-        longitudeTextView = findViewById(R.id.longitude_TextView);
-        temperatureTextView = findViewById(R.id.currentTemperature);
-        skyTextView = findViewById(R.id.sky_TextView);
+        currentLocationTextView = findViewById(R.id.currentLocation_textView);
+        currentTemperatureTextView = findViewById(R.id.currentTemperature_textView);
+        currentSkyTextView = findViewById(R.id.currentSky_textView);
+        currentSkyImageView = findViewById(R.id.currentSky_imageView);
+        currentSkyImageView.setImageResource(android.R.color.transparent);
 
-        skyImageView = findViewById(R.id.sky_ImageView);
-        skyImageView.setImageResource(android.R.color.transparent);
+        searchedLocationEditText = findViewById(R.id.searchedLocation_editText);
+        searchedTemperatureTextView = findViewById(R.id.searchedTemperature_textView);
+        searchedSkyTextView = findViewById(R.id.searchedSky_textView);
+        searchedSkyImageView = findViewById(R.id.searchedSky_ImageView);
+        searchedSkyImageView.setImageResource(android.R.color.transparent);
 
-        searchedLocationEditText = findViewById(R.id.searchedLocation_EditText);
-        searchedLocationTemperatureEditText = findViewById(R.id.editTextSearchedLocationTemperature);
-        searchedLocationSkyEditText = findViewById(R.id.searchedLocationSky_EditText);
-
-        refreshButton = findViewById(R.id.refresh_button);
         searchButton = findViewById(R.id.search_button);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -90,11 +84,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
         }
 
-        refreshButton.setOnClickListener(view -> {
-            Toast.makeText(getApplicationContext(), R.string.toast_refreshing, Toast.LENGTH_SHORT).show();
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        });
-
         searchButton.setOnClickListener(view -> {
             StringRequest request = new StringRequest(Request.Method.GET,
                     "https://geocoding-api.open-meteo.com/v1/search?name=" + searchedLocationEditText.getText(),
@@ -106,18 +95,18 @@ public class MainActivity extends AppCompatActivity {
                             for (int i = 0; i < resultsJSONArray.length(); i++) {
                                 String str;
                                 try {
-                                    str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin1") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                    str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin1") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                 } catch (JSONException e1) {
                                     try {
-                                        str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin2") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                        str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin2") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                     } catch (JSONException e2) {
                                         try {
-                                            str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin3") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                            str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin3") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                         } catch (JSONException e3) {
                                             try {
-                                                str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin4") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                                str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin4") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                             } catch (JSONException e4) {
-                                                str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                                str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                             }
                                         }
                                     }
@@ -129,9 +118,7 @@ public class MainActivity extends AppCompatActivity {
                             alertDialogBuilder.setTitle(R.string.selectAResult);
 
                             AtomicInteger selectedIndex = new AtomicInteger(-1);
-                            alertDialogBuilder.setSingleChoiceItems(resultStrings.toArray(new String[resultStrings.size()]), -1, (dialog, which) -> {
-                                selectedIndex.set(which);
-                            });
+                            alertDialogBuilder.setSingleChoiceItems(resultStrings.toArray(new String[0]), -1, (dialog, which) -> selectedIndex.set(which));
                             alertDialogBuilder.setPositiveButton(R.string.selectButton, (dialog, which) -> {
                                 String selectedLocationLatitude = null, selectedLocationLongitude = null;
                                 try {
@@ -140,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                updateSearchedLocationWeatherInfo(selectedLocationLatitude, selectedLocationLongitude);
+                                updateWeatherInfo(selectedLocationLatitude, selectedLocationLongitude, searchedTemperatureTextView, searchedSkyTextView, searchedSkyImageView);
                             });
                             alertDialogBuilder.setNegativeButton(R.string.cancelButton, null);
 
@@ -149,55 +136,38 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     },
-                    error -> {}
+                    Throwable::printStackTrace
             );
             requestQueue.add(request);
         });
     }
 
-    public void updateSearchedLocationWeatherInfo(String lat, String lon) {
+    public void updateWeatherInfo(String lat, String lon, TextView temperatureTextView, TextView skyTextView, ImageView skyImageView) {
         StringRequest request = new StringRequest(Request.Method.GET,
-                "https://api.open-meteo.com/v1/forecast" + "?latitude=" + lat +  "&longitude=" + lon + "&current_weather=true",
+                "https://api.open-meteo.com/v1/forecast?latitude=" + lat +  "&longitude=" + lon + "&current_weather=true",
                 response -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        searchedLocationTemperatureEditText.setText(String.valueOf(jsonObject.getJSONObject("current_weather").get("temperature")));
-                        int id = getResources().getIdentifier("weathercode" + String.valueOf(jsonObject.getJSONObject("current_weather").get("weathercode")), "string", getPackageName());
+                        String temperature = jsonObject.getJSONObject("current_weather").get("temperature") +"º";
+                        temperatureTextView.setText(temperature);
+
+                        int weatherCode = (int) jsonObject.getJSONObject("current_weather").get("weathercode");
+                        int id = getResources().getIdentifier("weathercode" + weatherCode, "string", getPackageName());
                         String result = getString(id);
-                        searchedLocationSkyEditText.setText(result);
+                        skyTextView.setText(result);
+                        if (0 <= weatherCode && weatherCode <= 2)
+                            skyImageView.setImageResource(R.drawable.sun_moon);
+                        if (3 <= weatherCode && weatherCode <= 48)
+                            skyImageView.setImageResource(R.drawable.cloud);
+                        if ((51 <= weatherCode && weatherCode <= 67) || (80 <= weatherCode && weatherCode <= 82) || (95 <= weatherCode && weatherCode <= 99))
+                            skyImageView.setImageResource(R.drawable.rain);
+                        if ((71 <= weatherCode && weatherCode <= 77) || (85 <= weatherCode && weatherCode <= 86))
+                            skyImageView.setImageResource(R.drawable.snow);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 },
-                error -> {}
-        );
-        requestQueue.add(request);
-    }
-
-    public void updateCurrentLocationWeatherInfo(String lat, String lon) {
-        StringRequest request = new StringRequest(Request.Method.GET,
-                "https://api.open-meteo.com/v1/forecast?latitude=" + lat +  "&longitude=" + lon + "&current_weather=true",
-                    response -> {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            temperatureTextView.setText(String.valueOf(jsonObject.getJSONObject("current_weather").get("temperature")));
-                            int weathercode = (int) jsonObject.getJSONObject("current_weather").get("weathercode");
-                            int id = getResources().getIdentifier("weathercode" + String.valueOf(weathercode), "string", getPackageName());
-                            String result = getString(id);
-                            skyTextView.setText(result);
-                            if (0 <= weathercode && weathercode <= 2)
-                                skyImageView.setImageResource(R.drawable.sun_moon);
-                            if (3 <= weathercode && weathercode <= 48)
-                                skyImageView.setImageResource(R.drawable.cloud);
-                            if ((51 <= weathercode && weathercode <= 67) || (80 <= weathercode && weathercode <= 82) || (95 <= weathercode && weathercode <= 99))
-                                skyImageView.setImageResource(R.drawable.rain);
-                            if ((71 <= weathercode && weathercode <= 77) || (85 <= weathercode && weathercode <= 86))
-                                skyImageView.setImageResource(R.drawable.snow);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    },
-                    error -> {}
+                Throwable::printStackTrace
         );
         requestQueue.add(request);
     }
@@ -206,9 +176,7 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             double lat = location.getLatitude(), lon = location.getLongitude();
 
-            latitudeTextView.setText(String.valueOf(lat));
-            longitudeTextView.setText(String.valueOf(lon));
-            updateCurrentLocationWeatherInfo(String.valueOf(lat), String.valueOf(lon));
+            updateWeatherInfo(String.valueOf(lat), String.valueOf(lon), currentTemperatureTextView, currentSkyTextView, currentSkyImageView);
 
             Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
             try {
@@ -235,13 +203,14 @@ public class MainActivity extends AppCompatActivity {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
                 }
             } else {
-                refreshButton.setEnabled(false);
+                currentLocationTextView.setText(R.string.no_location);
             }
         } else if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
             } else {
-                refreshButton.setEnabled(false);
+                searchedLocationEditText.setEnabled(false);
+                searchButton.setEnabled(false);
             }
         }
     }

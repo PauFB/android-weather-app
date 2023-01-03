@@ -1,11 +1,14 @@
 <resources>
     <string name="app_name">Weather App</string>
     <string name="current_location">Ubicació actual</string>
-    <string name="Latitude">Latitud</string>
-    <string name="Longitude">Longitud</string>
-    <string name="refresh_button">Refrescar</string>
-    <string name="toast_refreshing">Refrescant...</string>
-    <string name="Sky">Cel</string>
+    <string name="search_location">Cercar ubicació</string>
+    <string name="search_button">Cercar</string>
+    <string name="typeToSearch">Escriu per cercar…</string>
+    <string name="selectAResult">Selecciona un resultat</string>
+    <string name="selectButton">Seleccionar</string>
+    <string name="cancelButton">Cancel·lar</string>
+    <string name="sky">Estat del cel</string>
+    <string name="no_location">No s\'ha trobat cap ubicació. Permet la ubicació</string>
     <string name="weathercode0">Clar</string>
     <string name="weathercode1">Majoritàriament clar</string>
     <string name="weathercode2">Parcialment clar</string>
@@ -34,10 +37,4 @@
     <string name="weathercode95">Tempesta lleugera/moderada</string>
     <string name="weathercode96">Tempesta de cua lleu</string>
     <string name="weathercode99">Tempesta de cua intensa</string>
-    <string name="searchCity">Cercar ubicació</string>
-    <string name="search_button">Cercar</string>
-    <string name="typeToSearch">Escriu per cercar...</string>
-    <string name="selectAResult">Selecciona un resultat</string>
-    <string name="selectButton">Seleccionar</string>
-    <string name="cancelButton">Cancel·lar</string>
 </resources>
