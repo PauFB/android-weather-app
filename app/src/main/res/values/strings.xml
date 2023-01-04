@@ -1,11 +1,18 @@
 <resources>
     <string name="app_name">Weather App</string>
     <string name="current_location">Current location</string>
-    <string name="Latitude">Latitude</string>
-    <string name="Longitude">Longitude</string>
-    <string name="refresh_button">Refresh</string>
-    <string name="toast_refreshing">Refreshing...</string>
-    <string name="Sky">Sky</string>
+    <string name="search_location">Search location</string>
+    <string name="environment">Environment</string>
+    <string name="search_button">Search</string>
+    <string name="typeToSearch">Type to search…</string>
+    <string name="selectAResult">Select a result</string>
+    <string name="selectButton">Select</string>
+    <string name="cancelButton">Cancel</string>
+    <string name="sky">Sky State</string>
+    <string name="no_location">No location found. Please enable location</string>
+    <string name="connection_error">Connection error. Try again</string>
+    <string name="no_bluetooth">No data received. Please enable bluetooth</string>
+    <string name="no_bluetooth_device">HMSoft device not found</string>
     <string name="weathercode0">Clear sky</string>
     <string name="weathercode1">Mainly clear</string>
     <string name="weathercode2">Partly clody</string>
@@ -34,13 +41,4 @@
     <string name="weathercode95">Slight/moderate thunderstorm</string>
     <string name="weathercode96">Slight tail thunderstorm</string>
     <string name="weathercode99">Heavy tail thunderstorm</string>
-    <string name="searchCity">Search location</string>
-    <string name="search_button">Search</string>
-    <string name="typeToSearch">Type to search...</string>
-    <string name="selectAResult">Select a result</string>
-    <string name="selectButton">Select</string>
-    <string name="cancelButton">Cancel</string>
-    <string name="internetUnavailable">Internet unavailable</string>
-    <string name="gpsUnavailable">GPS unavailable</string>
-    <string name="bluetoothUnavailable">Bluetooth is unavailable</string>
 </resources>

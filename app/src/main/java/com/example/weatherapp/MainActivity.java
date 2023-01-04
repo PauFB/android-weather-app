@@ -1,5 +1,7 @@
 package com.example.weatherapp;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,16 +9,13 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
@@ -25,10 +24,10 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Parcel;
 import android.os.ParcelUuid;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,54 +42,34 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView currentLocationTextView;
-    private TextView latitudeTextView;
-    private TextView longitudeTextView;
-    private TextView temperatureTextView;
-    private TextView skyTextView;
+    private TextView currentTemperatureTextView;
+    private TextView currentSkyTextView;
+    private ImageView currentSkyImageView;
 
     private EditText searchedLocationEditText;
-    private EditText searchedLocationTemperatureEditText;
-    private EditText searchedLocationSkyEditText;
+    private TextView searchedTemperatureTextView;
+    private TextView searchedSkyTextView;
+    private ImageView searchedSkyImageView;
 
-    private Button refreshButton;
     private Button searchButton;
 
     private LocationManager locationManager;
 
     RequestQueue requestQueue;
 
-    public TextView luxBluetoothTextView;
-    public TextView temperatureBluetoothTextView;
+    public TextView environmentLuminosityTextView;
+    public TextView environmentTemperatureTextView;
 
     BluetoothManager bluetoothManager;
     BluetoothAdapter bluetoothAdapter;
-    private IntentFilter filter;
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device.getAddress().equalsIgnoreCase(HMSOFT_MAC_ADDRESS)) {
-                    bluetoothAdapter.cancelDiscovery();
-                    ConnectThread c = new ConnectThread(device);
-                    c.start();
-                }
-            }
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,36 +80,32 @@ public class MainActivity extends AppCompatActivity {
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        currentLocationTextView = findViewById(R.id.currentLocation_EditText);
-        latitudeTextView = findViewById(R.id.latitude_TextView);
-        longitudeTextView = findViewById(R.id.longitude_TextView);
-        temperatureTextView = findViewById(R.id.currentTemperature);
-        skyTextView = findViewById(R.id.sky_TextView);
+        currentLocationTextView = findViewById(R.id.currentLocation_textView);
+        currentTemperatureTextView = findViewById(R.id.currentTemperature_textView);
+        currentSkyTextView = findViewById(R.id.currentSky_textView);
+        currentSkyImageView = findViewById(R.id.currentSky_imageView);
+        currentSkyImageView.setImageResource(android.R.color.transparent);
 
-        searchedLocationEditText = findViewById(R.id.searchedLocation_EditText);
-        searchedLocationTemperatureEditText = findViewById(R.id.editTextSearchedLocationTemperature);
-        searchedLocationSkyEditText = findViewById(R.id.searchedLocationSky_EditText);
+        searchedLocationEditText = findViewById(R.id.searchedLocation_editText);
+        searchedTemperatureTextView = findViewById(R.id.searchedTemperature_textView);
+        searchedSkyTextView = findViewById(R.id.searchedSky_textView);
+        searchedSkyImageView = findViewById(R.id.searchedSky_ImageView);
+        searchedSkyImageView.setImageResource(android.R.color.transparent);
 
-        refreshButton = findViewById(R.id.refresh_button);
         searchButton = findViewById(R.id.search_button);
 
-        luxBluetoothTextView = findViewById(R.id.lux_TextView);
-        temperatureBluetoothTextView = findViewById(R.id.temperature_TextView);
+        environmentLuminosityTextView = findViewById(R.id.environmentLuminosity_textView);
+        environmentTemperatureTextView = findViewById(R.id.environmentTemperature_textView);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
             }
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
         }
-
-        refreshButton.setOnClickListener(view -> {
-            Toast.makeText(getApplicationContext(), R.string.toast_refreshing, Toast.LENGTH_SHORT).show();
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        });
 
         searchButton.setOnClickListener(view -> {
             StringRequest request = new StringRequest(Request.Method.GET,
@@ -143,18 +118,18 @@ public class MainActivity extends AppCompatActivity {
                             for (int i = 0; i < resultsJSONArray.length(); i++) {
                                 String str;
                                 try {
-                                    str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin1") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                    str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin1") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                 } catch (JSONException e1) {
                                     try {
-                                        str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin2") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                        str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin2") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                     } catch (JSONException e2) {
                                         try {
-                                            str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin3") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                            str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin3") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                         } catch (JSONException e3) {
                                             try {
-                                                str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("admin4") + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                                str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("admin4") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                             } catch (JSONException e4) {
-                                                str = resultsJSONArray.getJSONObject(i).get("name").toString() + ", " + resultsJSONArray.getJSONObject(i).get("country").toString();
+                                                str = resultsJSONArray.getJSONObject(i).get("name") + ", " + resultsJSONArray.getJSONObject(i).get("country");
                                             }
                                         }
                                     }
@@ -166,9 +141,7 @@ public class MainActivity extends AppCompatActivity {
                             alertDialogBuilder.setTitle(R.string.selectAResult);
 
                             AtomicInteger selectedIndex = new AtomicInteger(-1);
-                            alertDialogBuilder.setSingleChoiceItems(resultStrings.toArray(new String[resultStrings.size()]), -1, (dialog, which) -> {
-                                selectedIndex.set(which);
-                            });
+                            alertDialogBuilder.setSingleChoiceItems(resultStrings.toArray(new String[0]), -1, (dialog, which) -> selectedIndex.set(which));
                             alertDialogBuilder.setPositiveButton(R.string.selectButton, (dialog, which) -> {
                                 String selectedLocationLatitude = null, selectedLocationLongitude = null;
                                 try {
@@ -177,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                updateSearchedLocationWeatherInfo(selectedLocationLatitude, selectedLocationLongitude);
+                                updateWeatherInfo(selectedLocationLatitude, selectedLocationLongitude, searchedTemperatureTextView, searchedSkyTextView, searchedSkyImageView);
                             });
                             alertDialogBuilder.setNegativeButton(R.string.cancelButton, null);
 
@@ -186,54 +159,40 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     },
-                    error -> {
-                    }
+                    error -> Toast.makeText(getApplicationContext(), R.string.connection_error, Toast.LENGTH_SHORT).show()
             );
             requestQueue.add(request);
         });
 
-        filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(receiver, filter);
-
         this.setUpBluetooth();
     }
 
-    public void updateSearchedLocationWeatherInfo(String lat, String lon) {
+    public void updateWeatherInfo(String lat, String lon, TextView temperatureTextView, TextView skyTextView, ImageView skyImageView) {
         StringRequest request = new StringRequest(Request.Method.GET,
-                "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current_weather=true",
+                "https://api.open-meteo.com/v1/forecast?latitude=" + lat +  "&longitude=" + lon + "&current_weather=true",
                 response -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        searchedLocationTemperatureEditText.setText(String.valueOf(jsonObject.getJSONObject("current_weather").get("temperature")));
-                        int id = getResources().getIdentifier("weathercode" + String.valueOf(jsonObject.getJSONObject("current_weather").get("weathercode")), "string", getPackageName());
-                        String result = getString(id);
-                        searchedLocationSkyEditText.setText(result);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> {
-                }
-        );
-        requestQueue.add(request);
-    }
+                        String temperature = jsonObject.getJSONObject("current_weather").get("temperature") +"º";
+                        temperatureTextView.setText(temperature);
 
-    public void updateCurrentLocationWeatherInfo(String lat, String lon) {
-        StringRequest request = new StringRequest(Request.Method.GET,
-                "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current_weather=true",
-                response -> {
-                    try {
-                        JSONObject jsonObject = new JSONObject(response);
-                        temperatureTextView.setText(String.valueOf(jsonObject.getJSONObject("current_weather").get("temperature")));
-                        int id = getResources().getIdentifier("weathercode" + String.valueOf(jsonObject.getJSONObject("current_weather").get("weathercode")), "string", getPackageName());
+                        int weatherCode = (int) jsonObject.getJSONObject("current_weather").get("weathercode");
+                        int id = getResources().getIdentifier("weathercode" + weatherCode, "string", getPackageName());
                         String result = getString(id);
                         skyTextView.setText(result);
+                        if (0 <= weatherCode && weatherCode <= 2)
+                            skyImageView.setImageResource(R.drawable.sun_moon);
+                        if (3 <= weatherCode && weatherCode <= 48)
+                            skyImageView.setImageResource(R.drawable.cloud);
+                        if ((51 <= weatherCode && weatherCode <= 67) || (80 <= weatherCode && weatherCode <= 82) || (95 <= weatherCode && weatherCode <= 99))
+                            skyImageView.setImageResource(R.drawable.rain);
+                        if ((71 <= weatherCode && weatherCode <= 77) || (85 <= weatherCode && weatherCode <= 86))
+                            skyImageView.setImageResource(R.drawable.snow);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 },
-                error -> {
-                }
+                error -> Toast.makeText(getApplicationContext(), R.string.connection_error, Toast.LENGTH_SHORT).show()
         );
         requestQueue.add(request);
     }
@@ -242,9 +201,7 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             double lat = location.getLatitude(), lon = location.getLongitude();
 
-            latitudeTextView.setText(String.valueOf(lat));
-            longitudeTextView.setText(String.valueOf(lon));
-            updateCurrentLocationWeatherInfo(String.valueOf(lat), String.valueOf(lon));
+            updateWeatherInfo(String.valueOf(lat), String.valueOf(lon), currentTemperatureTextView, currentSkyTextView, currentSkyImageView);
 
             Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
             try {
@@ -257,6 +214,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
         }
+        @Override
+        public void onProviderDisabled(@NonNull String provider) {
+            currentLocationTextView.setText(R.string.no_location);
+            currentTemperatureTextView.setText("");
+            currentSkyTextView.setText("");
+            currentSkyImageView.setImageResource(android.R.color.transparent);
+        }
+        @Override
+        public void onProviderEnabled(@NonNull String provider) {
+        }
     };
 
     @SuppressLint("MissingPermission")
@@ -267,53 +234,53 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 0) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
                 } else {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
                 }
             } else {
-                refreshButton.setEnabled(false);
-                Toast.makeText(getApplicationContext(), R.string.internetUnavailable, Toast.LENGTH_SHORT).show();
+                currentLocationTextView.setText(R.string.no_location);
             }
         } else if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
             } else {
-                refreshButton.setEnabled(false);
-                Toast.makeText(getApplicationContext(), R.string.gpsUnavailable, Toast.LENGTH_SHORT).show();
+                searchedLocationEditText.setEnabled(false);
+                searchButton.setEnabled(false);
             }
         }
     }
 
-    public class MyHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            String bothValues = new String((byte[]) msg.obj, 0, ((byte[]) msg.obj).length);
-            luxBluetoothTextView.setText(bothValues.split(";")[0]);
-            temperatureBluetoothTextView.setText(bothValues.split(";")[1]);
-        }
-    }
-
-    private Handler myHandler = new MyHandler();
-
-    private final static int REQUEST_ENABLE_BT = 2;
-    private final String HMSOFT_MAC_ADDRESS = "00:0E:EA:CF:61:5A";
 
     public void setUpBluetooth() {
         bluetoothManager = getSystemService(BluetoothManager.class);
         bluetoothAdapter = bluetoothManager.getAdapter();
         if (bluetoothAdapter == null) {
-            Toast.makeText(getApplicationContext(), R.string.bluetoothUnavailable, Toast.LENGTH_SHORT).show();
+            environmentLuminosityTextView.setText(R.string.no_bluetooth);
             return;
         }
+
+        ActivityResultLauncher<Intent> bluetoothResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        connectDevice();
+                    } else {
+                        environmentLuminosityTextView.setText(R.string.no_bluetooth);
+                    }
+                });
+
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 2);
-                return;
-            }
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            bluetoothResultLauncher.launch(enableBtIntent);
+        } else {
+            connectDevice();
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    public void connectDevice() {
+        String HMSOFT_MAC_ADDRESS = "00:0E:EA:CF:61:5A";
 
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
@@ -322,42 +289,28 @@ public class MainActivity extends AppCompatActivity {
                 if (deviceHardwareAddress.equalsIgnoreCase(HMSOFT_MAC_ADDRESS)) {
                     ConnectThread c = new ConnectThread(device);
                     c.start();
-                    break;
+                    return;
                 }
             }
-        } else {
-            //bluetoothAdapter.startDiscovery();
-            bluetoothAdapter.getBluetoothLeScanner().startScan(new ScanCallback() {
-                @Override
-                public void onScanResult(int callbackType, ScanResult result) {
-                    //List<ParcelUuid> uuids = result.getScanRecord().getServiceUuids();
-                    //hmSoftUuid = uuids.get(0);
-                    hmSoftUuid = UUID.nameUUIDFromBytes(result.getScanRecord().getBytes());
-                }
-            });
         }
-
+        environmentLuminosityTextView.setText(R.string.no_bluetooth_device);
     }
 
-    UUID hmSoftUuid;
-
+    @SuppressLint("MissingPermission")
     public class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
 
-        @SuppressLint("MissingPermission")
         public ConnectThread(BluetoothDevice device) {
             BluetoothSocket tmp = null;
-            @SuppressLint("MissingPermission") ParcelUuid[] uuids = device.getUuids();
+            ParcelUuid[] uuids = device.getUuids();
             try {
                 tmp = device.createRfcommSocketToServiceRecord(uuids[0].getUuid());
-                //tmp = device.createRfcommSocketToServiceRecord(hmSoftUuid);
             } catch (IOException e) {
                 e.printStackTrace();
             }
             mmSocket = tmp;
         }
 
-        @SuppressLint("MissingPermission")
         public void run() {
             try {
                 mmSocket.connect();
@@ -375,16 +328,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public class MyHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            String bothValues = new String((byte[]) msg.obj, 0, ((byte[]) msg.obj).length);
+            String luminosity = bothValues.split(";")[0] + " lux";
+            environmentLuminosityTextView.setText(luminosity);
+            String temperature = bothValues.split(";")[1] + "º";
+            environmentTemperatureTextView.setText(temperature);
+        }
+    }
+
     public class TransferThread extends Thread {
-        private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
-        private final OutputStream mmOutStream;
-        private byte[] mmBuffer;
 
         public TransferThread(BluetoothSocket socket) {
-            mmSocket = socket;
             InputStream tmpIn = null;
-            OutputStream tmpOut = null;
 
             try {
                 tmpIn = socket.getInputStream();
@@ -392,19 +351,13 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            try {
-                tmpOut = socket.getOutputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
             mmInStream = tmpIn;
-            mmOutStream = tmpOut;
         }
 
         public void run() {
-            mmBuffer = new byte[20];
-            int numBytes = 0; // bytes returned from read()
+            Handler myHandler = new MyHandler();
+            byte[] mmBuffer = new byte[20];
+            int numBytes = 0;
 
             while (true) {
                 try {
@@ -414,12 +367,9 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                Message readMsg = myHandler.obtainMessage(
-                        0, numBytes, -1,
-                        mmBuffer);
+                Message readMsg = myHandler.obtainMessage(0, numBytes, -1, mmBuffer);
                 readMsg.sendToTarget();
             }
         }
     }
-
 }
