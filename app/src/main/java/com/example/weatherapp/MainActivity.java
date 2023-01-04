@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
             }
@@ -136,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     },
-                    Throwable::printStackTrace
+                    error -> Toast.makeText(getApplicationContext(), R.string.connection_error, Toast.LENGTH_SHORT).show()
             );
             requestQueue.add(request);
         });
@@ -167,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 },
-                Throwable::printStackTrace
+                error -> Toast.makeText(getApplicationContext(), R.string.connection_error, Toast.LENGTH_SHORT).show()
         );
         requestQueue.add(request);
     }
@@ -188,6 +189,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
         }
+        @Override
+        public void onProviderDisabled(@NonNull String provider) {
+            currentLocationTextView.setText(R.string.no_location);
+            currentTemperatureTextView.setText("");
+            currentSkyTextView.setText("");
+            currentSkyImageView.setImageResource(android.R.color.transparent);
+        }
+        @Override
+        public void onProviderEnabled(@NonNull String provider) {
+        }
     };
 
     @SuppressLint("MissingPermission")
@@ -198,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 0) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED) {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
                 } else {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
                 }
@@ -207,12 +218,11 @@ public class MainActivity extends AppCompatActivity {
             }
         } else if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
             } else {
                 searchedLocationEditText.setEnabled(false);
                 searchButton.setEnabled(false);
             }
         }
     }
-
 }

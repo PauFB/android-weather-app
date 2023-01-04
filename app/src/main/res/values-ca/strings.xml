@@ -8,7 +8,8 @@
     <string name="selectButton">Seleccionar</string>
     <string name="cancelButton">Cancel·lar</string>
     <string name="sky">Estat del cel</string>
-    <string name="no_location">No s\'ha trobat cap ubicació. Permet la ubicació</string>
+    <string name="no_location">No s\'ha trobat cap ubicació. Habilita la ubicació</string>
+    <string name="connection_error">Error de connexió. Torna a provar</string>
     <string name="weathercode0">Clar</string>
     <string name="weathercode1">Majoritàriament clar</string>
     <string name="weathercode2">Parcialment clar</string>
