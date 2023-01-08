@@ -71,6 +71,17 @@ public class MainActivity extends AppCompatActivity {
     BluetoothManager bluetoothManager;
     BluetoothAdapter bluetoothAdapter;
 
+    Handler myHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            String bothValues = new String((byte[]) msg.obj, 0, ((byte[]) msg.obj).length);
+            String luminosity = bothValues.split(";")[0] + " lux";
+            environmentLuminosityTextView.setText(luminosity);
+            String temperature = bothValues.split(";")[1] + "º";
+            environmentTemperatureTextView.setText(temperature);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -328,17 +339,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class MyHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            String bothValues = new String((byte[]) msg.obj, 0, ((byte[]) msg.obj).length);
-            String luminosity = bothValues.split(";")[0] + " lux";
-            environmentLuminosityTextView.setText(luminosity);
-            String temperature = bothValues.split(";")[1] + "º";
-            environmentTemperatureTextView.setText(temperature);
-        }
-    }
-
     public class TransferThread extends Thread {
         private final InputStream mmInStream;
 
@@ -355,7 +355,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void run() {
-            Handler myHandler = new MyHandler();
             byte[] mmBuffer = new byte[20];
             int numBytes = 0;
 
